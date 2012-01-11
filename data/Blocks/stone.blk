@@ -1,0 +1,11 @@
+stone@data/texture/stone.png
+stone@data/texture/stone.png
+stone@data/texture/stone.png
+stone@data/texture/stone.png
+stone@data/texture/stone.png
+stone@data/texture/stone.png
+bool : visible : true
+
+bool:solid:true
+
+  //comment test

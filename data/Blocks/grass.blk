@@ -1,0 +1,8 @@
+grass@data/texture/grass.png
+dirt@data/texture/dirt.png
+dirt@data/texture/dirt.png
+dirt@data/texture/dirt.png
+dirt@data/texture/dirt.png
+dirt@data/texture/dirt.png
+bool:visible:true
+bool:solid:true
