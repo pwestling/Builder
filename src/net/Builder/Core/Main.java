@@ -24,8 +24,6 @@ public class Main {
 		try {
 			Database.setDbLocation("test.db");
 
-			
-			
 			Renderer r = Renderer.getRenderer();
 			r.screenWidth = 1366;
 			r.screenHeight = 768;
@@ -58,6 +56,8 @@ public class Main {
 
 					frameTime -= dt;
 				}
+				EntityManager.getManager().doPhysics();
+
 				r.render();
 
 			}
@@ -68,7 +68,7 @@ public class Main {
 			Display.destroy();
 		} catch (Exception e) {
 			e.printStackTrace();
-			//Database.getDb().rollback();
+			// Database.getDb().rollback();
 		}
 	}
 }

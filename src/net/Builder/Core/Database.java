@@ -102,8 +102,6 @@ public class Database {
 		}
 	}
 
-
-
 	public ResultSet submitQueryRoutine(String name) {
 		try {
 			ResultSet rs = routines.get(name).executeQuery();
@@ -186,12 +184,12 @@ public class Database {
 	}
 
 	public void commit() {
-		try {
-			conn.commit();
-		} catch (SQLException e) {
-			e.printStackTrace();
-			System.exit(0);
-		}
+		// try {
+		// conn.commit();
+		// } catch (SQLException e) {
+		// e.printStackTrace();
+		// System.exit(0);
+		// }
 	}
 
 	public void rollback() {

@@ -7,8 +7,10 @@ import java.sql.Statement;
 
 import net.Builder.Core.Actor;
 import net.Builder.Core.BlockLibrary;
+import net.Builder.Core.BoundingBox;
 import net.Builder.Core.Database;
 import net.Builder.Core.Entity;
+import net.Builder.Core.EntityManager;
 import net.Builder.Core.Updateable;
 import net.Builder.Core.World;
 
@@ -32,6 +34,8 @@ public class Player implements Entity, Actor, Updateable {
 
 	public Player(String name) {
 		this.name = name;
+		EntityManager.getManager().register(this);
+
 		controller = new LocalController(this);
 		Statement stmt = Database.getDb().getStatement();
 		try {
@@ -51,7 +55,7 @@ public class Player implements Entity, Actor, Updateable {
 		} catch (SQLException e) {
 			e.printStackTrace();
 			this.x = 0;
-			this.y = 30;
+			this.y = 50;
 			this.z = 0;
 			this.heading = 0;
 			this.pitch = 0;
@@ -93,11 +97,9 @@ public class Player implements Entity, Actor, Updateable {
 	}
 
 	@Override
-	public float[] getBoundingBox() {
-		float[] bound = { (float) (x - 0.5), (float) (y - 1),
-				(float) (z - 0.5), (float) (x + 0.5), (float) (y + 1),
-				(float) (z + 0.5) };
-		return bound;
+	public BoundingBox getBoundingBox() {
+
+		return new BoundingBox(x, y, z, 0.5, 1, 0.5);
 	}
 
 	@Override
@@ -144,42 +146,8 @@ public class Player implements Entity, Actor, Updateable {
 
 	@Override
 	public void update(double delta) {
-		double oldx = x;
-		double oldy = y;
-		double oldz = z;
+
 		controller.update(delta);
-//		x += xVel * delta;
-//		y += yVel * delta;
-//		z += zVel * delta;
-//
-//		// System.out.println(delta);
-//
-//		// gravity
-//		// System.out.println("Player at " + x + " " + y + " " + z);
-//
-//		if (World.getWorld().getBlock(x, y, z).boolProp("solid")) {
-//
-//			x = oldx;
-//			y = oldy;
-//			z = oldz;
-//
-//		}
-//		if (World.getWorld().getBlock(x, (y - 1), z).boolProp("solid")) {
-//
-//			x = oldx;
-//			y = oldy;
-//			z = oldz;
-//
-//		}
-//
-//		if (!World.getWorld().getBlock((int) x, (int) (y - 2), (int) z)
-//				.boolProp("solid")) {
-//			yVel = Math.max(-0.003, yVel - 0.0003 * delta);
-//		} else {
-//			yVel = 0;
-//		}
-//
-//		y = Math.max(-80, Math.min(80, y));
 
 	}
 

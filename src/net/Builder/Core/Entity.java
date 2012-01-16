@@ -22,7 +22,7 @@ public interface Entity {
 
 	public void setPitch(double pitch);
 
-	public float[] getBoundingBox();
+	public BoundingBox getBoundingBox();
 
 	public void save();
 
