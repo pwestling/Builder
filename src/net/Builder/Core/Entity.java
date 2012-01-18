@@ -24,6 +24,10 @@ public interface Entity {
 
 	public BoundingBox getBoundingBox();
 
+	public boolean getNoClip();
+
+	public void setNoClip(boolean b);
+
 	public void save();
 
 	public double getxVel();

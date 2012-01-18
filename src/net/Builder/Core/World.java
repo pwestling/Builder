@@ -183,9 +183,9 @@ public class World implements Viewable {
 
 		@Override
 		public void run() {
-			while (true && !stop) {
-				update();
-			}
+			// while (true && !stop) {
+			update();
+			// }
 		}
 	}
 
@@ -194,8 +194,8 @@ public class World implements Viewable {
 	public void update() {
 		loadChunks(1);
 		unloadChunks(1);
-		 saveLoadedChunks();
-		 saveEntities();
+		saveLoadedChunks();
+		saveEntities();
 	}
 
 	public void stopUpdater() {
@@ -243,16 +243,18 @@ public class World implements Viewable {
 	}
 
 	public void saveLoadedChunks() {
-		for (CoordKey key : chunkMap.keySet()) {
-			if (!chunkMap.get(key).isSavedSinceDirty()) {
-				byte[] bytes = blocksToByte(chunkMap.get(key).getBlocks());
+		synchronized (chunkMap) {
+			for (CoordKey key : chunkMap.keySet()) {
+				if (!chunkMap.get(key).isSavedSinceDirty()) {
+					byte[] bytes = blocksToByte(chunkMap.get(key).getBlocks());
 
-				Database db = Database.getDb();
-				db.setRoutineParam("saveChunk", 1, bytes);
-				db.setRoutineParam("saveChunk", 2, key.x + " " + key.y + " "
-						+ key.z);
-				db.submitRoutine("saveChunk");
-				chunkMap.get(key).setSavedSinceDirty(true);
+					Database db = Database.getDb();
+					db.setRoutineParam("saveChunk", 1, bytes);
+					db.setRoutineParam("saveChunk", 2, key.x + " " + key.y
+							+ " " + key.z);
+					db.submitRoutine("saveChunk");
+					chunkMap.get(key).setSavedSinceDirty(true);
+				}
 			}
 		}
 	}
@@ -261,33 +263,36 @@ public class World implements Viewable {
 		ArrayList<CoordKey> keysToRemove = new ArrayList<CoordKey>();
 		int writing = 0;
 		int batchSize = 0;
-		for (CoordKey key : chunkMap.keySet()) {
-			boolean visible = false;
-			for (int i = 0; i < players.size() && !visible; i++) {
-				Entity player = players.get(i);
-				int cs = Chunk.chunkSize;
-				int px = ((int) player.getX()) / cs;
-				int py = ((int) player.getY()) / cs;
-				int pz = ((int) player.getZ()) / cs;
-				if (Math.abs(px - key.x) <= size / 2
-						&& Math.abs(py - key.y) <= size / 2 + 2
-						&& Math.abs(pz - key.z) <= size / 2) {
-					visible = true;
+		synchronized (chunkMap) {
+
+			for (CoordKey key : chunkMap.keySet()) {
+				boolean visible = false;
+				for (int i = 0; i < players.size() && !visible; i++) {
+					Entity player = players.get(i);
+					int cs = Chunk.chunkSize;
+					int px = ((int) player.getX()) / cs;
+					int py = ((int) player.getY()) / cs;
+					int pz = ((int) player.getZ()) / cs;
+					if (Math.abs(px - key.x) <= size / 2
+							&& Math.abs(py - key.y) <= size / 2 + 2
+							&& Math.abs(pz - key.z) <= size / 2) {
+						visible = true;
+					}
 				}
-			}
-			if (!visible) {
+				if (!visible) {
 
-				short[][][] blocks = chunkMap.get(key).getBlocks();
-				byte[] bytes = blocksToByte(blocks);
+					short[][][] blocks = chunkMap.get(key).getBlocks();
+					byte[] bytes = blocksToByte(blocks);
 
-				writing += bytes.length;
-				Database db = Database.getDb();
-				db.setRoutineParam("saveChunk", 1, bytes);
-				db.setRoutineParam("saveChunk", 2, key.x + " " + key.y + " "
-						+ key.z);
-				db.submitRoutine("saveChunk");
-				keysToRemove.add(key);
+					writing += bytes.length;
+					Database db = Database.getDb();
+					db.setRoutineParam("saveChunk", 1, bytes);
+					db.setRoutineParam("saveChunk", 2, key.x + " " + key.y
+							+ " " + key.z);
+					db.submitRoutine("saveChunk");
+					keysToRemove.add(key);
 
+				}
 			}
 		}
 		synchronized (chunkMap) {

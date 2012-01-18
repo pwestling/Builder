@@ -23,7 +23,7 @@ public class LocalController extends Controller {
 		super(controlled);
 		// TODO Auto-generated constructor stub
 	}
-	
+
 	boolean fly = false;
 	private boolean fast = false;
 
@@ -64,29 +64,32 @@ public class LocalController extends Controller {
 			fixMouse = true;
 
 		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_SPACE) && fly){
-			controlled.setY(controlled.getY() + speed*delta);
+		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE) && fly) {
+			controlled.setY(controlled.getY() + speed * delta);
+		} else if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)
+				&& controlled.getyVel() == 0) {
+			controlled.setyVel(0.08);
 		}
-		else if (Keyboard.isKeyDown(Keyboard.KEY_SPACE) && controlled.getyVel() == 0) {
-			controlled.setyVel(0.03);
+		if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && fly) {
+			controlled.setY(controlled.getY() - speed * delta);
 		}
-		if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && fly){
-			controlled.setY(controlled.getY() - speed*delta);
-		}
-		
+
 		if (Keyboard.isKeyDown(Keyboard.KEY_P) && !fly) {
 			fly = true;
+			controlled.setNoClip(true);
+			controlled.setyVel(0);
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_L) && fly) {
 			fly = false;
+			controlled.setNoClip(false);
 		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_M)&&fast) {
+		if (Keyboard.isKeyDown(Keyboard.KEY_M) && fast) {
 			fast = false;
-			speed = speed/5;
+			speed = speed / 5;
 		}
-		if (Keyboard.isKeyDown(Keyboard.KEY_N)&& !fast ) {
+		if (Keyboard.isKeyDown(Keyboard.KEY_N) && !fast) {
 			fast = true;
-			speed = speed*5;
+			speed = speed * 5;
 		}
 
 		int mouseDx = Mouse.getX() - mouseX;

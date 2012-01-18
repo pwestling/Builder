@@ -30,6 +30,8 @@ public class Player implements Entity, Actor, Updateable {
 	PreparedStatement saveStmt = null;
 	String name;
 
+	boolean noClip = false;
+
 	Controller controller;
 
 	public Player(String name) {
@@ -51,6 +53,11 @@ public class Player implements Entity, Actor, Updateable {
 				this.pitch = rs.getDouble("pitch");
 			} else {
 				stmt.execute("Insert into players(name) values('" + name + "')");
+				this.x = 0;
+				this.y = 50;
+				this.z = 0;
+				this.heading = 0;
+				this.pitch = 0;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -179,6 +186,18 @@ public class Player implements Entity, Actor, Updateable {
 	@Override
 	public void setzVel(double zVel) {
 		this.zVel = zVel;
+	}
+
+	@Override
+	public boolean getNoClip() {
+		return noClip;
+
+	}
+
+	@Override
+	public void setNoClip(boolean b) {
+		noClip = b;
+
 	}
 
 }

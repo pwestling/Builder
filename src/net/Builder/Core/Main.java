@@ -25,8 +25,8 @@ public class Main {
 			Database.setDbLocation("test.db");
 
 			Renderer r = Renderer.getRenderer();
-			r.screenWidth = 1366;
-			r.screenHeight = 768;
+			r.screenWidth = 800;
+			r.screenHeight = 600;
 			r.init();
 			Player p = new Player("thehivemind5");
 			Camera cam = new FPSCamera();
@@ -35,7 +35,7 @@ public class Main {
 
 			BlockLibrary.getBlockLibrary().init();
 			Profiler.mark();
-			World.worldSize = 16;
+			World.worldSize = 8;
 			World world = World.getWorld();
 			world.addPlayer(p);
 			world.loadChunks(100);
@@ -53,7 +53,6 @@ public class Main {
 				while (frameTime > 0.0) {
 					double deltaTime = Math.min(frameTime, dt);
 					p.update(deltaTime);
-
 					frameTime -= dt;
 				}
 				EntityManager.getManager().doPhysics();
