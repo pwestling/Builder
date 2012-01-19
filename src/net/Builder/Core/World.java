@@ -1,37 +1,29 @@
 package net.Builder.Core;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.Collection;
-import java.util.HashMap;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+
 
 import net.Builder.Core.WorldGen.Simplex2DWorldBuilder;
 import net.Builder.Core.WorldGen.WorldBuilder;
-import net.Builder.User.Player;
 import net.Builder.Render.Viewable;
 import net.Builder.util.FloatVectorHash;
+import net.Builder.util.Point;
 
 public class World implements Viewable {
 
-	private Set<CoordKey> chunkKeys = new TreeSet<CoordKey>();
-	private Map<CoordKey, Chunk> chunkMap = new TreeMap<CoordKey, Chunk>();
+	private Set<Point> chunkKeys = new TreeSet<Point>();
+	private Map<Point, Chunk> chunkMap = new TreeMap<Point, Chunk>();
 	private int size;
-	private float radius;
 
 	private WorldBuilder wb;
 
@@ -78,7 +70,7 @@ public class World implements Viewable {
 			while (rs.next()) {
 				String id = rs.getString("id");
 				String[] coords = id.split(" ");
-				CoordKey key = new CoordKey(Integer.parseInt(coords[0]),
+				Point key = new Point(Integer.parseInt(coords[0]),
 						Integer.parseInt(coords[1]),
 						Integer.parseInt(coords[2]));
 				chunkKeys.add(key);
@@ -101,8 +93,6 @@ public class World implements Viewable {
 
 		wb = new Simplex2DWorldBuilder(seed);
 
-		radius = (float) Math.hypot(Math.hypot((size / 2 * Chunk.chunkSize),
-				(size / 2 * Chunk.chunkSize)), (size / 2 * Chunk.chunkSize));
 
 	}
 
@@ -116,18 +106,16 @@ public class World implements Viewable {
 
 	@Override
 	public FloatVectorHash vertices() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public float[] boundingSphere() {
+	public BoundingSphere boundingSphere() {
 		// this is wrong
-		float[] boundSphere = { 0, 0, 0, 100000 };
-		return boundSphere;
+		return new BoundingSphere( new Point(0,0,0), 100000 );
 	}
 
-	@SuppressWarnings("unchecked")
+	
 	@Override
 	public synchronized Collection<Viewable> getChildren() {
 		synchronized (chunkMap) {
@@ -179,17 +167,17 @@ public class World implements Viewable {
 			stop = true;
 		}
 
-		private long timeSinceSave = System.nanoTime();
 
 		@Override
 		public void run() {
-			// while (true && !stop) {
-			update();
-			// }
+			while (true && !stop) {
+				update();
+				Thread.yield();
+			}
 		}
 	}
 
-	private long timeSinceSave = System.nanoTime();
+	
 
 	public void update() {
 		loadChunks(1);
@@ -211,22 +199,16 @@ public class World implements Viewable {
 	int batchCount = 0;
 
 	public void loadChunks(double delta) {
-		int loaded = 0;
-		long updateTime = System.nanoTime();
 
 		boolean keepGoing = true;
 		for (Entity p : players) {
-			int cs = Chunk.chunkSize;
-			int px = ((int) p.getX()) / cs;
-			int py = ((int) p.getY()) / cs;
-			int pz = ((int) p.getZ()) / cs;
+			Point pos = p.getPos().toChunkCoords();
+			Point iterPos = new Point();
 			for (int i = -size / 2; i < size / 2 && keepGoing; i++) {
 				for (int j = -size / 2; j < size / 2 && keepGoing; j++) {
 					for (int k = -size / 2; k < size / 2 + 2 && keepGoing; k++) {
-						int x = (px + i);
-						int y = (py + k);
-						int z = (pz + j);
-						CoordKey key = new CoordKey(x, y, z);
+						iterPos.set(i,j,k);
+						Point key = pos.plus(iterPos);
 						if (chunkMap.containsKey(key)) {
 							// Loaded, do nothing
 						} else {
@@ -244,14 +226,13 @@ public class World implements Viewable {
 
 	public void saveLoadedChunks() {
 		synchronized (chunkMap) {
-			for (CoordKey key : chunkMap.keySet()) {
+			for (Point key : chunkMap.keySet()) {
 				if (!chunkMap.get(key).isSavedSinceDirty()) {
 					byte[] bytes = blocksToByte(chunkMap.get(key).getBlocks());
 
 					Database db = Database.getDb();
 					db.setRoutineParam("saveChunk", 1, bytes);
-					db.setRoutineParam("saveChunk", 2, key.x + " " + key.y
-							+ " " + key.z);
+					db.setRoutineParam("saveChunk", 2, key.toDatabaseKey());
 					db.submitRoutine("saveChunk");
 					chunkMap.get(key).setSavedSinceDirty(true);
 				}
@@ -260,22 +241,18 @@ public class World implements Viewable {
 	}
 
 	public void unloadChunks(double delta) {
-		ArrayList<CoordKey> keysToRemove = new ArrayList<CoordKey>();
+		ArrayList<Point> keysToRemove = new ArrayList<Point>();
 		int writing = 0;
-		int batchSize = 0;
 		synchronized (chunkMap) {
 
-			for (CoordKey key : chunkMap.keySet()) {
+			for (Point key : chunkMap.keySet()) {
 				boolean visible = false;
 				for (int i = 0; i < players.size() && !visible; i++) {
 					Entity player = players.get(i);
-					int cs = Chunk.chunkSize;
-					int px = ((int) player.getX()) / cs;
-					int py = ((int) player.getY()) / cs;
-					int pz = ((int) player.getZ()) / cs;
-					if (Math.abs(px - key.x) <= size / 2
-							&& Math.abs(py - key.y) <= size / 2 + 2
-							&& Math.abs(pz - key.z) <= size / 2) {
+					Point pos = player.getPos().toChunkCoords();
+					if (Math.abs(pos.x() - key.x()) <= size / 2
+							&& Math.abs(pos.y() - key.y()) <= size / 2 + 2
+							&& Math.abs(pos.z() - key.z()) <= size / 2) {
 						visible = true;
 					}
 				}
@@ -287,8 +264,7 @@ public class World implements Viewable {
 					writing += bytes.length;
 					Database db = Database.getDb();
 					db.setRoutineParam("saveChunk", 1, bytes);
-					db.setRoutineParam("saveChunk", 2, key.x + " " + key.y
-							+ " " + key.z);
+					db.setRoutineParam("saveChunk", 2, key.toDatabaseKey());
 					db.submitRoutine("saveChunk");
 					keysToRemove.add(key);
 
@@ -296,7 +272,7 @@ public class World implements Viewable {
 			}
 		}
 		synchronized (chunkMap) {
-			for (CoordKey key : keysToRemove) {
+			for (Point key : keysToRemove) {
 				chunkMap.remove(key);
 			}
 		}
@@ -309,13 +285,11 @@ public class World implements Viewable {
 		}
 	}
 
-	private void loadChunkFromDisk(CoordKey key) {
-		Chunk c = new Chunk(key.x * Chunk.chunkSize, key.y * Chunk.chunkSize,
-				key.z * Chunk.chunkSize);
+	private void loadChunkFromDisk(Point key) {
+		Chunk c = new Chunk(key.scaled(Chunk.chunkSize));
 		try {
 			Database db = Database.getDb();
-			db.setRoutineParam("loadChunk", 1, key.x + " " + key.y + " "
-					+ key.z);
+			db.setRoutineParam("loadChunk", 1, key.toDatabaseKey());
 			ResultSet rs = db.submitQueryRoutine("loadChunk");
 			if (rs.next()) {
 				byte[] buf = rs.getBytes("blocks");
@@ -400,57 +374,46 @@ public class World implements Viewable {
 		return blocks;
 	}
 
-	public void makeOrLoadChunk(CoordKey key) {
+	public void makeOrLoadChunk(Point key) {
 		int cs = Chunk.chunkSize;
 		if (chunkKeys.contains(key)) {
 			loadChunkFromDisk(key);
 		} else {
-			Chunk c = wb.makeChunk(key.x * cs, key.y * cs, key.z * cs);
+			Chunk c = wb.makeChunk(key.scaled(cs));
 			chunkKeys.add(key);
 			synchronized (chunkMap) {
 				chunkMap.put(key, c);
 			}
 			Database db = Database.getDb();
-			db.setRoutineParam("makeChunk", 1, key.x + " " + key.y + " "
-					+ key.z);
+			db.setRoutineParam("makeChunk", 1, key.toDatabaseKey());
 			db.submitRoutine("makeChunk");
 		}
 	}
 
-	public static CoordKey findChunk(double x, double y, double z) {
-		double sx = x / Chunk.chunkSize;
-		double sy = y / Chunk.chunkSize;
-		double sz = z / Chunk.chunkSize;
-		int cx = (int) Math.floor(sx);
-		int cy = (int) Math.floor(sy);
-		int cz = (int) Math.floor(sz);
-
-		CoordKey key = new CoordKey(cx, cy, cz);
-
-		return key;
-	}
-
-	public Block getBlock(double x, double y, double z) {
-		CoordKey key = findChunk(x, y, z);
+	
+	
+	public Block getBlock(Point p){
+		Point key = p.toChunkCoords();
 		Chunk c = chunkMap.get(key);
 		if (c != null) {
-			return c.getBlock(x, y, z);
+			return c.getBlock(p);
 		} else {
 			makeOrLoadChunk(key);
 			c = chunkMap.get(key);
-			return c.getBlock(x, y, z);
+			return c.getBlock(p);
 		}
 	}
 
-	public void setBlock(double x, double y, double z, short id) {
-		CoordKey key = findChunk(x, y, z);
+
+	public void setBlock(Point p, short id) {
+		Point key = p.toChunkCoords();
 		Chunk c = chunkMap.get(key);
 		if (c != null) {
-			c.setBlock(x, y, z, id);
+			c.setBlock(p, id);
 		} else {
 			makeOrLoadChunk(key);
 			c = chunkMap.get(key);
-			c.setBlock(x, y, z, id);
+			c.setBlock(p, id);
 		}
 
 	}

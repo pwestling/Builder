@@ -10,9 +10,7 @@ import net.Builder.util.*;
 
 public class Chunk implements Viewable {
 
-	private float x;
-	private float y;
-	private float z;
+	private Point pos;
 
 	public static final int chunkSize = 32;
 
@@ -51,14 +49,20 @@ public class Chunk implements Viewable {
 	private static final int[] vzs = { 0, 0, 0, 0 };
 
 	public Chunk(float x, float y, float z) {
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		this(new Point(x,y,z));
 
+		
+	}
+	
+	public Chunk(Point p){
+		this.pos = p;
+		
+		
 		radius = (float) Math.hypot(Math.hypot(chunkSize / 2, chunkSize / 2),
 				chunkSize / 2);
 
 	}
+	
 
 	public void init() {
 		generateMeshStripes();
@@ -169,11 +173,11 @@ public class Chunk implements Viewable {
 
 				fv.add(0).add(1);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[0]).add(y + k + vy[0]).add(j + z + vz[0]);
+				fv.add(pos.xf() + i + vx[0]).add(pos.yf() + k + vy[0]).add(j + pos.zf() + vz[0]);
 
 				fv.add(0).add(0);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[1]).add(y + k + vy[1]).add(j + z + vz[1]);
+				fv.add(pos.xf() + i + vx[1]).add(pos.yf() + k + vy[1]).add(j + pos.zf() + vz[1]);
 				vertexCount += 2;
 
 			}
@@ -184,11 +188,11 @@ public class Chunk implements Viewable {
 
 				fv.add(skipped[side.index]).add(0);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[2]).add(y + k + vy[2]).add(j + z + vz[2]);
+				fv.add(pos.xf() + i + vx[2]).add(pos.yf() + k + vy[2]).add(j + pos.zf() + vz[2]);
 
 				fv.add(skipped[side.index]).add(1);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[3]).add(y + k + vy[3]).add(j + z + vz[3]);
+				fv.add(pos.xf() + i + vx[3]).add(pos.yf() + k + vy[3]).add(j + pos.zf() + vz[3]);
 				skipped[side.index] = 0;
 
 				vertexCount += 2;
@@ -276,11 +280,11 @@ public class Chunk implements Viewable {
 
 				fv.add(0).add(1);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[0]).add(y + k + vy[0]).add(j + z + vz[0]);
+				fv.add(pos.xf() + i + vx[0]).add(pos.yf() + k + vy[0]).add(j + pos.zf() + vz[0]);
 
 				fv.add(0).add(0);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[1]).add(y + k + vy[1]).add(j + z + vz[1]);
+				fv.add(pos.xf() + i + vx[1]).add(pos.yf() + k + vy[1]).add(j + pos.zf() + vz[1]);
 				vertexCount += 2;
 
 			}
@@ -291,11 +295,11 @@ public class Chunk implements Viewable {
 
 				fv.add(skipped[side.index]).add(0);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[2]).add(y + k + vy[2]).add(j + z + vz[2]);
+				fv.add(pos.xf() + i + vx[2]).add(pos.yf() + k + vy[2]).add(j + pos.zf() + vz[2]);
 
 				fv.add(skipped[side.index]).add(1);
 				fv.add(dx).add(dy).add(dz);
-				fv.add(x + i + vx[3]).add(y + k + vy[3]).add(j + z + vz[3]);
+				fv.add(pos.xf() + i + vx[3]).add(pos.yf() + k + vy[3]).add(j + pos.zf() + vz[3]);
 				skipped[side.index] = 0;
 
 				vertexCount += 2;
@@ -317,10 +321,8 @@ public class Chunk implements Viewable {
 	}
 
 	@Override
-	public float[] boundingSphere() {
-		float[] boundSphere = { (x + chunkSize / 2), (y + chunkSize / 2),
-				(z + chunkSize / 2), radius };
-		return boundSphere;
+	public BoundingSphere boundingSphere() {
+		return new BoundingSphere(pos.translated(chunkSize / 2), radius);	
 	}
 
 	@Override
@@ -375,28 +377,8 @@ public class Chunk implements Viewable {
 
 	}
 
-	public float getX() {
-		return x;
-	}
-
-	public void setX(float x) {
-		this.x = x;
-	}
-
-	public float getY() {
-		return y;
-	}
-
-	public void setY(float y) {
-		this.y = y;
-	}
-
-	public float getZ() {
-		return z;
-	}
-
-	public void setZ(float z) {
-		this.z = z;
+	public Point getPos(){
+		return this.pos;
 	}
 
 	public short[][][] getBlocks() {
@@ -453,10 +435,10 @@ public class Chunk implements Viewable {
 	}
 
 
-	public Block getBlock(double x, double y, double z) {
-		int i = (int) Math.floor(x - this.x);
-		int k = (int) Math.floor(y - this.y);
-		int j = (int) Math.floor(z - this.z);
+	public Block getBlock(Point p) {
+		int i = (int) Math.floor(p.x() - this.pos.x());
+		int k = (int) Math.floor(p.y() - this.pos.y());
+		int j = (int) Math.floor(p.z() - this.pos.z());
 
 		if (i < 0) {
 			i += Chunk.chunkSize;
@@ -470,17 +452,17 @@ public class Chunk implements Viewable {
 		try {
 			return lookup(i, j, k);
 		} catch (ArrayIndexOutOfBoundsException e) {
-			System.out.println(this.x + " " + this.y + " " + this.z + " " + x
-					+ " " + y + " " + z + " " + i + " " + k + " " + j);
+			System.out.println(this.pos.x() + " " + this.pos.y() + " " + this.pos.z() + " " + p.x()
+					+ " " + p.y() + " " + p.z() + " " + i + " " + k + " " + j);
 			throw e;
 		}
 
 	}
 
-	public void setBlock(double x, double y, double z, short id) {
-		int i = (int) Math.floor(x - this.x);
-		int k = (int) Math.floor(y - this.y);
-		int j = (int) Math.floor(z - this.z);
+	public void setBlock(Point p, short id) {
+		int i = (int) Math.floor(p.x() - this.pos.x());
+		int k = (int) Math.floor(p.y() - this.pos.y());
+		int j = (int) Math.floor(p.z() - this.pos.z());
 		if (i < 0) {
 			i += Chunk.chunkSize;
 		}

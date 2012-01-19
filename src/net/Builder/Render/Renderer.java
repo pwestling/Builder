@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import net.Builder.Core.BlockLibrary;
+import net.Builder.Core.BoundingSphere;
 import net.Builder.Core.Chunk;
 import net.Builder.Core.World;
 import net.Builder.User.Player;
@@ -280,12 +281,12 @@ public class Renderer {
 
 	}
 
-	private boolean inFrustum(float[] boundingSphere) {
+	private boolean inFrustum(BoundingSphere boundingSphere) {
 		for (int p = 0; p < 6; p++) {
-			double dist = frustum[p][0] * (boundingSphere[0]) + frustum[p][1]
-					* (boundingSphere[1]) + frustum[p][2] * (boundingSphere[2])
+			double dist = frustum[p][0] * (boundingSphere.x()) + frustum[p][1]
+					* (boundingSphere.y()) + frustum[p][2] * (boundingSphere.z())
 					+ frustum[p][3];
-			if (dist <= -boundingSphere[3]) {
+			if (dist <= -boundingSphere.radius()) {
 				// System.out.println("Not In Frustum");
 				return false;
 			}
@@ -303,7 +304,7 @@ public class Renderer {
 		if (System.currentTimeMillis() - lastFPS > 1000) {
 			oldfps = fps;
 			Display.setTitle("FPS: " + oldfps + " Y: "
-					+ camera.getAnchor().getY());
+					+ camera.getAnchor().getPos().y());
 			fps = 0; // reset the FPS counter
 			lastFPS += 1000; // add one second
 		}

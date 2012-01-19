@@ -1,18 +1,17 @@
 package net.Builder.Core;
 
+import net.Builder.util.Point;
+import net.Builder.util.Vector3D;
+
 public interface Entity {
 
-	public float getX();
-
-	public float getY();
-
-	public float getZ();
-
-	public void setX(double x);
-
-	public void setY(double y);
-
-	public void setZ(double z);
+	public Point getPos();
+	
+	public void setPos(Point p);
+	
+	public Point getVel();
+	
+	public void setVel(Point v);
 
 	public float getHeading();
 
@@ -30,16 +29,8 @@ public interface Entity {
 
 	public void save();
 
-	public double getxVel();
-
-	public void setxVel(double xVel);
-
-	public double getyVel();
-
-	public void setyVel(double yVel);
-
-	public double getzVel();
-
-	public void setzVel(double zVel);
+	public Point getIntendedMove();
+	
+	public void setIntendedMove(Point im);
 
 }

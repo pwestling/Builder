@@ -5,10 +5,11 @@ import org.lwjgl.input.Mouse;
 
 import net.Builder.Core.Entity;
 import net.Builder.Render.Renderer;
+import net.Builder.util.Point;
 
 public class LocalController extends Controller {
 
-	double speed = 0.008;
+	double speed = 4.0;
 	double rotspeed = 720;
 
 	int w = Renderer.screenWidth;
@@ -30,28 +31,26 @@ public class LocalController extends Controller {
 	@Override
 	public void update(double delta) {
 		double headingrad = Math.toRadians(controlled.getHeading());
+		Point pos = controlled.getPos().clone();
+		Point vel = controlled.getVel();
 		if (Keyboard.isKeyDown(Keyboard.KEY_W)) {
-			controlled.setZ(controlled.getZ() - Math.cos(headingrad) * speed
-					* delta);
-			controlled.setX(controlled.getX() + Math.sin(headingrad) * speed
+			pos.translate(Math.sin(headingrad) * speed
+					* delta, 0, - Math.cos(headingrad) * speed
 					* delta);
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_S)) {
-			controlled.setZ(controlled.getZ() + Math.cos(headingrad) * speed
-					* delta);
-			controlled.setX(controlled.getX() - Math.sin(headingrad) * speed
+			pos.translate(-Math.sin(headingrad) * speed
+					* delta, 0,  Math.cos(headingrad) * speed
 					* delta);
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_A)) {
-			controlled.setZ(controlled.getZ() - Math.sin(headingrad) * speed
-					* delta);
-			controlled.setX(controlled.getX() - Math.cos(headingrad) * speed
+			pos.translate(-Math.cos(headingrad) * speed
+					* delta, 0, - Math.sin(headingrad) * speed
 					* delta);
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_D)) {
-			controlled.setZ(controlled.getZ() + Math.sin(headingrad) * speed
-					* delta);
-			controlled.setX(controlled.getX() + Math.cos(headingrad) * speed
+			pos.translate(Math.cos(headingrad) * speed
+					* delta, 0,  Math.sin(headingrad) * speed
 					* delta);
 
 		}
@@ -65,19 +64,19 @@ public class LocalController extends Controller {
 
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE) && fly) {
-			controlled.setY(controlled.getY() + speed * delta);
+			pos.translate(0,speed * delta,0);
 		} else if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)
-				&& controlled.getyVel() == 0) {
-			controlled.setyVel(0.08);
+				&& controlled.getVel().y() == 0) {
+			vel.translate(0, 0.08, 0);
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) && fly) {
-			controlled.setY(controlled.getY() - speed * delta);
+			pos.translate(0,-speed * delta,0);
 		}
 
 		if (Keyboard.isKeyDown(Keyboard.KEY_P) && !fly) {
 			fly = true;
 			controlled.setNoClip(true);
-			controlled.setyVel(0);
+			vel.setY(0);
 		}
 		if (Keyboard.isKeyDown(Keyboard.KEY_L) && fly) {
 			fly = false;
@@ -95,10 +94,11 @@ public class LocalController extends Controller {
 		int mouseDx = Mouse.getX() - mouseX;
 		int mouseDy = Mouse.getY() - mouseY;
 		double heading = controlled.getHeading();
+		
 		double pitch = controlled.getPitch();
 		if (fixMouse) {
-			controlled.setHeading(heading + ((mouseDx) / ((float) w / 2))
-					* delta * rotspeed);
+			double dh = ((mouseDx) / ((float) w / 2))* delta * rotspeed;
+			controlled.setHeading(heading + dh);
 			pitch -= ((mouseDy) / ((float) h / 2)) * delta * rotspeed;
 			controlled.setPitch(Math.min(Math.max(pitch, -90), 90));
 		}
@@ -113,6 +113,9 @@ public class LocalController extends Controller {
 			Mouse.setCursorPosition(w / 2, h / 2);
 
 		}
+		
+		controlled.setIntendedMove(pos);
+		controlled.setVel(vel);
 
 	}
 

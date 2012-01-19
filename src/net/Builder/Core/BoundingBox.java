@@ -1,93 +1,55 @@
 package net.Builder.Core;
 
+import net.Builder.util.Point;
+
 public class BoundingBox {
 
-	float[] center = new float[3];
-	float[] radii = new float[3];
-	float[] translation = new float[3];
+	Point center = new Point();
+	Point radii = new Point();
+	Point translation = new Point();
 
-	public BoundingBox(float x, float y, float z, float xrad, float yrad,
-			float zrad) {
+	public BoundingBox(double x, double y, double z, double xrad, double yrad,
+			double zrad) {
 
-		center[0] = x;
-		center[1] = y;
-		center[2] = z;
+		center.set(x,y,z);
 
-		radii[0] = xrad;
-		radii[1] = yrad;
-		radii[2] = zrad;
+		radii.set(xrad, yrad, zrad);
 
-		translation[0] = 0.0f;
-		translation[1] = 0.0f;
-		translation[2] = 0.0f;
 
 	}
-
-	public BoundingBox(double d, double e, double f, double g, double h,
-			double i) {
-		this((float) d, (float) e, (float) f, (float) g, (float) h, (float) i);
+	
+	public BoundingBox(Point center, Point radii){
+		this.center = center;
+		this.radii = radii;
 	}
+
+	
 
 	public int getRad() {
-		return (int) ((Math.max(Math.max(radii[0], radii[1]), radii[2])) + 3);
+		return (int)Math.ceil( ((Math.max(Math.max(radii.x(), radii.y()), radii.z()))));
 	}
 
-	public void collideCube(float _x, float _y, float _z) {
+	public boolean collideCube(Point p) {
 
-		int x = (int) _x;
-		int y = (int) _y;
-		int z = (int) _z;
-		float[] t = new float[3];
-		t[0] = 0.0f;
-		t[1] = 0.0f;
-		t[2] = 0.0f;
+	
 
-		if (center[0] + radii[0] > x && center[0] - radii[0] < x + 1
-				&& center[1] + radii[1] > y && center[1] - radii[1] < y + 1
-				&& center[2] + radii[2] > z && center[2] - radii[2] < z + 1) {
+		if (center.x() + radii.x() > p.xi() && center.x() - radii.x() < p.xi() + 1
+				&& center.y() + radii.y() > p.yi() && center.y() - radii.y() < p.yi() + 1
+				&& center.z() + radii.z() > p.zi() && center.z() - radii.z() < p.zi() + 1) {
 
-			if (center[0] + radii[0] - x < (x + 1) - (center[0] - radii[0])) {
-				t[0] = -(center[0] + radii[0] - x);
-			} else {
-				t[0] = (x + 1) - (center[0] - radii[0]);
-			}
-			if (center[1] + radii[1] - y < (y + 1) - (center[1] - radii[1])) {
-				t[1] = -(center[1] + radii[1] - y);
-			} else {
-				t[1] = (y + 1) - (center[1] - radii[1]);
-			}
-			if (center[2] + radii[2] - z < (z + 1) - (center[2] - radii[2])) {
-				t[2] = -(center[2] + radii[2] - z);
-			} else {
-				t[2] = (z + 1) - (center[2] - radii[2]);
-			}
-			System.out.println(t[0] + " " + t[1] + " " + t[2]);
-
+			
+			return true;
 		}
-
-		this.translate(t[0], t[1], t[2]);
+		
+		return false;
 
 	}
 
 	public void translate(float x, float y, float z) {
-		center[0] = center[0] + x;
-		center[1] = center[1] + y;
-		center[2] = center[2] + z;
+		center.translate(x, y, z);
 
-		translation[0] = translation[0] + x;
-		translation[1] = translation[1] + y;
-		translation[2] = translation[2] + z;
+		translation.translate(x,y,z);
 	}
 
-	public float getXTrans() {
-		return translation[0];
-	}
-
-	public float getYTrans() {
-		return translation[1];
-	}
-
-	public float getZTrans() {
-		return translation[2];
-	}
+	
 }

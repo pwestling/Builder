@@ -8,6 +8,8 @@ import static org.lwjgl.opengl.GL11.glTranslated;
 
 import java.nio.FloatBuffer;
 
+import net.Builder.util.Point;
+
 import org.lwjgl.BufferUtils;
 
 public class FPSCamera extends Camera {
@@ -25,8 +27,8 @@ public class FPSCamera extends Camera {
 
 		glRotatef(anchor.getPitch(), 1, 0, 0);
 		glRotatef(anchor.getHeading(), 0, 1, 0);
-
-		glTranslated(-anchor.getX(), -anchor.getY() + 0.75, -anchor.getZ());
+		Point p = anchor.getPos();
+		glTranslated(-p.xf(), -p.yf() + 0.75, -p.zf());
 
 	}
 

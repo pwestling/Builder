@@ -4,6 +4,7 @@ import java.util.Random;
 
 import net.Builder.Core.BlockLibrary;
 import net.Builder.Core.Chunk;
+import net.Builder.util.Point;
 import net.Builder.util.Profiler;
 import net.Builder.util.SimplexNoiseGenerator;
 
@@ -42,6 +43,11 @@ public class Simplex2DWorldBuilder implements WorldBuilder {
 		//c.compress();
 		//System.out.println("Chunk gen took "+((System.nanoTime()-time)/1000000000));
 		return c;
+	}
+	
+	@Override
+	public Chunk makeChunk(Point p) {
+		return this.makeChunk(p.xi(), p.yi(), p.zi());
 	}
 
 	private short[][][] makeBlocks2D(int x, int y, int z) {
@@ -112,5 +118,7 @@ public class Simplex2DWorldBuilder implements WorldBuilder {
 
 		return blocks;
 	}
+
+	
 
 }

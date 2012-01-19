@@ -13,16 +13,14 @@ import net.Builder.Core.Entity;
 import net.Builder.Core.EntityManager;
 import net.Builder.Core.Updateable;
 import net.Builder.Core.World;
+import net.Builder.util.Point;
 
 public class Player implements Entity, Actor, Updateable {
 
-	double x;
-	double y;
-	double z;
-
-	double xVel;
-	double yVel;
-	double zVel;
+	Point pos;
+	Point vel;
+	Point size;
+	Point intendedPos;
 
 	double heading;
 	double pitch;
@@ -36,6 +34,11 @@ public class Player implements Entity, Actor, Updateable {
 
 	public Player(String name) {
 		this.name = name;
+		this.size = new Point(0.5, 1, 0.5);
+		this.vel = new Point();
+		this.intendedPos = new Point();
+		
+		
 		EntityManager.getManager().register(this);
 
 		controller = new LocalController(this);
@@ -46,24 +49,18 @@ public class Player implements Entity, Actor, Updateable {
 							+ "'");
 			if (rs.next()) {
 				System.out.println("Loading player from file");
-				this.x = rs.getDouble("x");
-				this.y = rs.getDouble("y");
-				this.z = rs.getDouble("z");
+				pos = new Point(rs.getDouble("x"),rs.getDouble("y"),rs.getDouble("z"));
 				this.heading = rs.getDouble("heading");
 				this.pitch = rs.getDouble("pitch");
 			} else {
 				stmt.execute("Insert into players(name) values('" + name + "')");
-				this.x = 0;
-				this.y = 50;
-				this.z = 0;
+				pos = new Point(0,50,0);
 				this.heading = 0;
 				this.pitch = 0;
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
-			this.x = 0;
-			this.y = 50;
-			this.z = 0;
+			pos = new Point(0,50,0);
 			this.heading = 0;
 			this.pitch = 0;
 		}
@@ -73,49 +70,20 @@ public class Player implements Entity, Actor, Updateable {
 						+ name + "'");
 	}
 
-	@Override
-	public float getX() {
-		return (float) x;
-	}
-
-	@Override
-	public void setX(double x) {
-		this.x = x;
-	}
-
-	@Override
-	public float getY() {
-		return (float) y;
-	}
-
-	@Override
-	public void setY(double y) {
-		this.y = y;
-	}
-
-	@Override
-	public float getZ() {
-		return (float) z;
-	}
-
-	@Override
-	public void setZ(double z) {
-		this.z = z;
-	}
 
 	@Override
 	public BoundingBox getBoundingBox() {
 
-		return new BoundingBox(x, y, z, 0.5, 1, 0.5);
+		return new BoundingBox(pos, size);
 	}
 
 	@Override
 	public void save() {
 		try {
-			saveStmt.setDouble(1, x);
+			saveStmt.setDouble(1, pos.x());
 
-			saveStmt.setDouble(2, y);
-			saveStmt.setDouble(3, z);
+			saveStmt.setDouble(2, pos.y());
+			saveStmt.setDouble(3, pos.z());
 			saveStmt.setDouble(4, heading);
 			saveStmt.setDouble(5, pitch);
 			saveStmt.execute();
@@ -158,35 +126,6 @@ public class Player implements Entity, Actor, Updateable {
 
 	}
 
-	@Override
-	public double getxVel() {
-		return xVel;
-	}
-
-	@Override
-	public void setxVel(double xVel) {
-		this.xVel = xVel;
-	}
-
-	@Override
-	public double getyVel() {
-		return yVel;
-	}
-
-	@Override
-	public void setyVel(double yVel) {
-		this.yVel = yVel;
-	}
-
-	@Override
-	public double getzVel() {
-		return zVel;
-	}
-
-	@Override
-	public void setzVel(double zVel) {
-		this.zVel = zVel;
-	}
 
 	@Override
 	public boolean getNoClip() {
@@ -198,6 +137,41 @@ public class Player implements Entity, Actor, Updateable {
 	public void setNoClip(boolean b) {
 		noClip = b;
 
+	}
+
+	@Override
+	public Point getPos() {
+		return pos;
+	}
+
+	@Override
+	public void setPos(Point p) {
+		pos = p;
+		//System.out.println("Pos set to "+pos);
+		
+	}
+
+	@Override
+	public Point getVel() {
+		return vel;
+	}
+
+	@Override
+	public void setVel(Point v) {
+		vel = v;
+		
+	}
+
+	@Override
+	public Point getIntendedMove() {
+		return intendedPos;
+	}
+
+
+	@Override
+	public void setIntendedMove(Point im) {
+		intendedPos = im;
+		
 	}
 
 }

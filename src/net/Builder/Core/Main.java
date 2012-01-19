@@ -25,8 +25,8 @@ public class Main {
 			Database.setDbLocation("test.db");
 
 			Renderer r = Renderer.getRenderer();
-			r.screenWidth = 800;
-			r.screenHeight = 600;
+			r.screenWidth = 1366;
+			r.screenHeight = 768;
 			r.init();
 			Player p = new Player("thehivemind5");
 			Camera cam = new FPSCamera();
@@ -47,17 +47,22 @@ public class Main {
 			world.startUpdater();
 			System.out.println("Updater running");
 			while (!Display.isCloseRequested()) {
-				Display.sync(80);
-				double frameTime = ((System.nanoTime() - time) / 1000000);
+				Display.sync(100);
+				long ttime = System.nanoTime();
+				double frameTime = ((System.nanoTime() - time)/ ((double) 1000000000));
+				//System.out.println(frameTime);
 				time = System.nanoTime();
-				while (frameTime > 0.0) {
-					double deltaTime = Math.min(frameTime, dt);
+				//while (frameTime > 0.0) {
+					//double deltaTime = Math.min(frameTime, dt);
+					double deltaTime = frameTime;
 					p.update(deltaTime);
-					frameTime -= dt;
-				}
-				EntityManager.getManager().doPhysics();
+					//frameTime -= dt;
+					EntityManager.getManager().doPhysics();
 
+				//}
+				
 				r.render();
+				//System.out.println("Time "+(System.nanoTime()-ttime));
 
 			}
 			world.stopUpdater();

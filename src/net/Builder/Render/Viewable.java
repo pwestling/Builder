@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Vector;
 
+import net.Builder.Core.BoundingSphere;
 import net.Builder.util.FloatVector;
 import net.Builder.util.FloatVectorHash;
 
@@ -20,7 +21,7 @@ public interface Viewable {
 
 	public boolean isVisible();
 
-	public float[] boundingSphere();
+	public BoundingSphere boundingSphere();
 
 	public Collection<Viewable> getChildren();
 
